@@ -20,53 +20,67 @@
 #include "authenticator.h"
 #include <cstdlib>
 #include <stdexcept>
+#include <sstream>
 using namespace std;
 
-#ifdef ENABLE_MYSQL
+#ifdef ENABLE_POSTGRESQL
 
 Authenticator::Authenticator(const Config &config) {
-    mysql_init(&con);
-    Log::log_with_date_time("connecting to MySQL server " + config.mysql.server_addr + ':' + to_string(config.mysql.server_port), Log::INFO);
-    if (!config.mysql.ca.empty()) {
-        if (!config.mysql.key.empty() && !config.mysql.cert.empty()) {
-            mysql_ssl_set(&con, config.mysql.key.c_str(), config.mysql.cert.c_str(), config.mysql.ca.c_str(), nullptr, nullptr);
-        } else {
-            mysql_ssl_set(&con, nullptr, nullptr, config.mysql.ca.c_str(), nullptr, nullptr);
+    stringstream conn_str;
+    conn_str << "host=" << config.postgresql.server_addr
+             << " port=" << config.postgresql.server_port
+             << " dbname=" << config.postgresql.database
+             << " user=" << config.postgresql.username
+             << " password=" << config.postgresql.password;
+    
+    if (!config.postgresql.ca.empty()) {
+        conn_str << " sslmode=verify-ca sslrootcert=" << config.postgresql.ca;
+        if (!config.postgresql.key.empty() && !config.postgresql.cert.empty()) {
+            conn_str << " sslcert=" << config.postgresql.cert
+                     << " sslkey=" << config.postgresql.key;
         }
+    } else if (!config.postgresql.sslmode.empty()) {
+        conn_str << " sslmode=" << config.postgresql.sslmode;
     }
-    if (mysql_real_connect(&con, config.mysql.server_addr.c_str(),
-                                 config.mysql.username.c_str(),
-                                 config.mysql.password.c_str(),
-                                 config.mysql.database.c_str(),
-                                 config.mysql.server_port, nullptr, 0) == nullptr) {
-        throw runtime_error(mysql_error(&con));
+    
+    con = PQconnectdb(conn_str.str().c_str());
+    
+    if (PQstatus(con) != CONNECTION_OK) {
+        string err = PQerrorMessage(con);
+        PQfinish(con);
+        throw runtime_error(err);
     }
-    bool reconnect = true;
-    mysql_options(&con, MYSQL_OPT_RECONNECT, &reconnect);
-    Log::log_with_date_time("connected to MySQL server", Log::INFO);
+    
+    Log::log_with_date_time("connected to PostgreSQL server", Log::INFO);
 }
 
 bool Authenticator::auth(const string &password) {
     if (!is_valid_password(password)) {
         return false;
     }
-    if (mysql_query(&con, ("SELECT quota, download + upload FROM users WHERE password = '" + password + '\'').c_str())) {
-        Log::log_with_date_time(mysql_error(&con), Log::ERROR);
+    
+    string query = "SELECT quota, download + upload FROM users WHERE password = $1";
+    const char *param_values[1] = { password.c_str() };
+    int param_lengths[1] = { static_cast<int>(password.length()) };
+    int param_formats[1] = { 0 }; // text format
+    
+    PGresult *res = PQexecParams(con, query.c_str(), 1, nullptr, param_values, param_lengths, param_formats, 0);
+    
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        Log::log_with_date_time(PQerrorMessage(con), Log::ERROR);
+        PQclear(res);
         return false;
     }
-    MYSQL_RES *res = mysql_store_result(&con);
-    if (res == nullptr) {
-        Log::log_with_date_time(mysql_error(&con), Log::ERROR);
+    
+    if (PQntuples(res) == 0) {
+        PQclear(res);
         return false;
     }
-    MYSQL_ROW row = mysql_fetch_row(res);
-    if (row == nullptr) {
-        mysql_free_result(res);
-        return false;
-    }
-    int64_t quota = atoll(row[0]);
-    int64_t used = atoll(row[1]);
-    mysql_free_result(res);
+    
+    int64_t quota = atoll(PQgetvalue(res, 0, 0));
+    int64_t used = atoll(PQgetvalue(res, 0, 1));
+    PQclear(res);
+    
     if (quota < 0) {
         return true;
     }
@@ -81,9 +95,22 @@ void Authenticator::record(const string &password, uint64_t download, uint64_t u
     if (!is_valid_password(password)) {
         return;
     }
-    if (mysql_query(&con, ("UPDATE users SET download = download + " + to_string(download) + ", upload = upload + " + to_string(upload) + " WHERE password = '" + password + '\'').c_str())) {
-        Log::log_with_date_time(mysql_error(&con), Log::ERROR);
+    
+    stringstream query;
+    query << "UPDATE users SET download = download + " << download
+          << ", upload = upload + " << upload
+          << " WHERE password = $1";
+    
+    const char *param_values[1] = { password.c_str() };
+    int param_lengths[1] = { static_cast<int>(password.length()) };
+    int param_formats[1] = { 0 };
+    
+    PGresult *res = PQexecParams(con, query.str().c_str(), 1, nullptr, param_values, param_lengths, param_formats, 0);
+    
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        Log::log_with_date_time(PQerrorMessage(con), Log::ERROR);
     }
+    PQclear(res);
 }
 
 bool Authenticator::is_valid_password(const string &password) {
@@ -99,15 +126,17 @@ bool Authenticator::is_valid_password(const string &password) {
 }
 
 Authenticator::~Authenticator() {
-    mysql_close(&con);
+    if (con) {
+        PQfinish(con);
+    }
 }
 
-#else // ENABLE_MYSQL
+#else // ENABLE_POSTGRESQL
 
-Authenticator::Authenticator(const Config&) {}
+Authenticator::Authenticator(const Config&) : con(nullptr) {}
 bool Authenticator::auth(const string&) { return true; }
 void Authenticator::record(const string&, uint64_t, uint64_t) {}
 bool Authenticator::is_valid_password(const string&) { return true; }
 Authenticator::~Authenticator() {}
 
-#endif // ENABLE_MYSQL
+#endif // ENABLE_POSTGRESQL

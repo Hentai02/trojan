@@ -20,16 +20,16 @@
 #ifndef _AUTHENTICATOR_H_
 #define _AUTHENTICATOR_H_
 
-#ifdef ENABLE_MYSQL
-#include <mysql.h>
-#endif // ENABLE_MYSQL
+#ifdef ENABLE_POSTGRESQL
+#include <libpq-fe.h>
+#endif // ENABLE_POSTGRESQL
 #include "config.h"
 
 class Authenticator {
 private:
-#ifdef ENABLE_MYSQL
-    MYSQL con{};
-#endif // ENABLE_MYSQL
+#ifdef ENABLE_POSTGRESQL
+    PGconn *con;
+#endif // ENABLE_POSTGRESQL
     enum {
         PASSWORD_LENGTH=56
     };

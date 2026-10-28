@@ -121,13 +121,13 @@ Service::Service(Config &config, bool test) :
         } else {
             ssl_context.use_tmp_dh_file(config.ssl.dhparam);
         }
-        if (config.mysql.enabled) {
-#ifdef ENABLE_MYSQL
-            auth = new Authenticator(config);
-#else // ENABLE_MYSQL
-            Log::log_with_date_time("MySQL is not supported", Log::WARN);
-#endif // ENABLE_MYSQL
-        }
+        if (config.postgresql.enabled) {
+        #ifdef ENABLE_POSTGRESQL
+                    auth = new Authenticator(config);
+        #else // ENABLE_POSTGRESQL
+                    Log::log_with_date_time("PostgreSQL is not supported", Log::WARN);
+        #endif // ENABLE_POSTGRESQL
+                }
     } else {
         if (config.ssl.sni.empty()) {
             config.ssl.sni = config.remote_addr;

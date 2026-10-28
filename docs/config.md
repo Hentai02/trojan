@@ -187,26 +187,27 @@ The NAT config is for transparent proxy. You'll need to [setup iptables rules](h
         "dhparam": ""
     },
     "tcp": {
-        "prefer_ipv4": false,
-        "no_delay": true,
-        "keep_alive": true,
-        "reuse_port": false,
-        "fast_open": false,
-        "fast_open_qlen": 20
-    },
-    "mysql": {
-        "enabled": false,
-        "server_addr": "127.0.0.1",
-        "server_port": 3306,
-        "database": "trojan",
-        "username": "trojan",
-        "password": "",
-        "key": "",
-        "cert": "",
-        "ca": ""
+            "prefer_ipv4": false,
+            "no_delay": true,
+            "keep_alive": true,
+            "reuse_port": false,
+            "fast_open": false,
+            "fast_open_qlen": 20
+        },
+        "postgresql": {
+            "enabled": false,
+            "server_addr": "127.0.0.1",
+            "server_port": 5432,
+            "database": "trojan",
+            "username": "trojan",
+            "password": "",
+            "key": "",
+            "cert": "",
+            "ca": "",
+            "sslmode": ""
+        }
     }
-}
-```
+    ```
 
 - `run_type`: running trojan as `server`
 - `local_addr`: trojan server will be bound to the specified interface. Feel free to change this to `::` or other addresses, if you know what you are doing.
@@ -237,6 +238,6 @@ The NAT config is for transparent proxy. You'll need to [setup iptables rules](h
     - `reuse_port`: whether to enable TCP port reuse (kernel support required)
     - `fast_open`: whether to enable TCP Fast Open (kernel support required)
     - `fast_open_qlen`: the server's limit on the size of the queue of TFO requests that have not yet completed the three-way handshake
-- `mysql`: see [Authenticator](authenticator)
+- `postgresql`: see [Authenticator](authenticator)
 
 [Homepage](.) | [Prev Page](protocol) | [Next Page](authenticator)

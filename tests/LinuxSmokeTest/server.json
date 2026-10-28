@@ -30,7 +30,7 @@
         "fast_open": false,
         "fast_open_qlen": 20
     },
-    "mysql": {
+    "postgresql": {
         "enabled": false,
         "server_addr": "",
         "server_port": 0,
@@ -39,6 +39,7 @@
         "password": "",
         "key": "",
         "cert": "",
-        "ca": ""
+        "ca": "",
+        "sslmode": ""
     }
 }

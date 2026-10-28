@@ -9,9 +9,9 @@ Install these dependencies before you build (note that the test has some [additi
 - [CMake](https://cmake.org/) >= 3.7.2
 - [Boost](http://www.boost.org/) >= 1.66.0
 - [OpenSSL](https://www.openssl.org/) >= 1.1.0
-- [libmysqlclient](https://dev.mysql.com/downloads/connector/c/)
+- [libpq](https://www.postgresql.org/docs/current/libpq.html) (PostgreSQL client library)
 
-For Debian users, run `sudo apt -y install build-essential cmake libboost-system-dev libboost-program-options-dev libssl-dev default-libmysqlclient-dev` to install all the necessary dependencies.
+For Debian users, run `sudo apt -y install build-essential cmake libboost-system-dev libboost-program-options-dev libssl-dev libpq-dev` to install all the necessary dependencies.
 
 ## Clone
 
@@ -42,9 +42,9 @@ to build, test, and install trojan. If everything goes well you'll be able to us
 The `cmake ..` command can be extended with the following options:
 
 - `-DDEFAULT_CONFIG=/path/to/default/config.json`: the default path trojan will look for config (defaults to `${CMAKE_INSTALL_FULL_SYSCONFDIR}/trojan/config.json`).
-- `ENABLE_MYSQL`
-    - `-DENABLE_MYSQL=ON`: build with MySQL support (default).
-    - `-DENABLE_MYSQL=OFF`: build without MySQL support.
+- `ENABLE_POSTGRESQL`
+    - `-DENABLE_POSTGRESQL=ON`: build with PostgreSQL support (default).
+    - `-DENABLE_POSTGRESQL=OFF`: build without PostgreSQL support.
 - `ENABLE_NAT` (Only on Linux)
     - `-DENABLE_NAT=ON`: build with NAT support (default).
     - `-DENABLE_NAT=OFF`: build without NAT support.

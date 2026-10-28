@@ -71,7 +71,7 @@ public:
         bool fast_open;
         int fast_open_qlen;
     } tcp;
-    class MySQLConfig {
+    class PostgreSQLConfig {
     public:
         bool enabled;
         std::string server_addr;
@@ -82,7 +82,8 @@ public:
         std::string key;
         std::string cert;
         std::string ca;
-    } mysql;
+        std::string sslmode;
+    } postgresql;
     void load(const std::string &filename);
     void populate(const std::string &JSON);
     bool sip003();

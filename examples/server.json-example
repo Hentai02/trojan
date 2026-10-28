@@ -37,15 +37,16 @@
         "fast_open": false,
         "fast_open_qlen": 20
     },
-    "mysql": {
+    "postgresql": {
         "enabled": false,
         "server_addr": "127.0.0.1",
-        "server_port": 3306,
+        "server_port": 5432,
         "database": "trojan",
         "username": "trojan",
         "password": "",
         "key": "",
         "cert": "",
-        "ca": ""
+        "ca": "",
+        "sslmode": ""
     }
 }

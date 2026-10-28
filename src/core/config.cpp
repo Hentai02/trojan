@@ -102,16 +102,17 @@ void Config::populate(const ptree &tree) {
     tcp.reuse_port = tree.get("tcp.reuse_port", false);
     tcp.fast_open = tree.get("tcp.fast_open", false);
     tcp.fast_open_qlen = tree.get("tcp.fast_open_qlen", 20);
-    mysql.enabled = tree.get("mysql.enabled", false);
-    mysql.server_addr = tree.get("mysql.server_addr", string("127.0.0.1"));
-    mysql.server_port = tree.get("mysql.server_port", uint16_t(3306));
-    mysql.database = tree.get("mysql.database", string("trojan"));
-    mysql.username = tree.get("mysql.username", string("trojan"));
-    mysql.password = tree.get("mysql.password", string());
-    mysql.key = tree.get("mysql.key", string());
-    mysql.cert = tree.get("mysql.cert", string());
-    mysql.ca = tree.get("mysql.ca", string());
-}
+        postgresql.enabled = tree.get("postgresql.enabled", false);
+        postgresql.server_addr = tree.get("postgresql.server_addr", string("127.0.0.1"));
+        postgresql.server_port = tree.get("postgresql.server_port", uint16_t(5432));
+        postgresql.database = tree.get("postgresql.database", string("trojan"));
+        postgresql.username = tree.get("postgresql.username", string("trojan"));
+        postgresql.password = tree.get("postgresql.password", string());
+        postgresql.key = tree.get("postgresql.key", string());
+        postgresql.cert = tree.get("postgresql.cert", string());
+        postgresql.ca = tree.get("postgresql.ca", string());
+        postgresql.sslmode = tree.get("postgresql.sslmode", string());
+    }
 
 bool Config::sip003() {
     char *JSON = getenv("SS_PLUGIN_OPTIONS");

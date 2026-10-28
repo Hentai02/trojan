@@ -1,18 +1,19 @@
 # Authenticator
 
-Trojan servers can authenticate users according to not only passwords in the config file but also entries in a MySQL (MariaDB) database. To turn this functionality on, set `enabled` field in the MySQL config to `true` and correctly configure the server address, credentials, and etc. If you would like to connect to the database securely, you can fill the `ca` field indicating the MySQL server's CA file and optionally fill the `key` and `cert` fields indicating the client's private key and certificate:
+Trojan servers can authenticate users according to not only passwords in the config file but also entries in a PostgreSQL database. To turn this functionality on, set `enabled` field in the PostgreSQL config to `true` and correctly configure the server address, credentials, and etc. If you would like to connect to the database securely, you can fill the `ca` field indicating the PostgreSQL server's CA file and optionally fill the `key` and `cert` fields indicating the client's private key and certificate:
 
 ```json
-"mysql": {
+"postgresql": {
     "enabled": true,
     "server_addr": "127.0.0.1",
-    "server_port": 3306,
+    "server_port": 5432,
     "database": "trojan",
     "username": "trojan",
     "password": "",
     "key": "",
     "cert": "",
-    "ca": ""
+    "ca": "",
+    "sslmode": ""
 }
 ```
 
@@ -20,13 +21,12 @@ The table has to be named `users`. An example table structure could be:
 
 ```sql
 CREATE TABLE users (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     username VARCHAR(64) NOT NULL,
     password CHAR(56) NOT NULL,
     quota BIGINT NOT NULL DEFAULT 0,
     download BIGINT UNSIGNED NOT NULL DEFAULT 0,
     upload BIGINT UNSIGNED NOT NULL DEFAULT 0,
-    PRIMARY KEY (id),
     INDEX (password)
 );
 ```
